@@ -50,23 +50,19 @@ namespace Softnet.ServerKit
 
         public static SoftnetMessage Create(byte componentId, byte messageType, ASNEncoder asnEncoder)
         {
-            AsnEncoding encoding = asnEncoder.GetHeadedEncoding(7);
-            byte[] buffer = encoding.buffer;
-            int offset = encoding.offset;
-            buffer[offset - 2] = componentId;
-            buffer[offset - 1] = messageType;
-            offset = EncodeLength(buffer, offset - 2);
-            return new MsgBuilder(buffer, offset);
+            byte[] encoding = asnEncoder.GetEncoding(7);
+            encoding[5] = componentId;
+            encoding[6] = messageType;
+            int offset = EncodeLength(encoding, 5);
+            return new MsgBuilder(encoding, offset);
         }
 
         public static SoftnetMessage Create(byte messageType, ASNEncoder asnEncoder)
         {
-            AsnEncoding encoding = asnEncoder.GetHeadedEncoding(7);
-            byte[] buffer = encoding.buffer;
-            int offset = encoding.offset;
-            buffer[offset - 1] = messageType;
-            offset = EncodeLength(buffer, offset - 1);
-            return new MsgBuilder(buffer, offset);
+            byte[] encoding = asnEncoder.GetEncoding(6);
+            encoding[5] = messageType;
+            int offset = EncodeLength(encoding, 5);
+            return new MsgBuilder(encoding, offset);
         }
 
         public static SoftnetMessage Create(byte componentId, byte messageType)
@@ -121,39 +117,39 @@ namespace Softnet.ServerKit
 
             if (dataSize <= 255)
             {
-                buffer[offset - 2] = (byte)0x81;
-                buffer[offset - 1] = (byte)dataSize;
                 offset -= 2;
+                buffer[offset] = (byte)0x81;
+                buffer[offset + 1] = (byte)dataSize;
                 return offset;
             }
 
             if (dataSize <= 0x0000ffff)
             {
-                buffer[offset - 3] = (byte)0x82;
-                buffer[offset - 2] = (byte)((dataSize & 0x0000ff00) >> 8);
-                buffer[offset - 1] = (byte)(dataSize & 0x000000ff);
                 offset -= 3;
+                buffer[offset] = (byte)0x82;
+                buffer[offset + 1] = (byte)((dataSize & 0x0000ff00) >> 8);
+                buffer[offset + 2] = (byte)(dataSize & 0x000000ff);
                 return offset;
             }
 
             if (dataSize <= 0x00ffffff)
             {
-                buffer[offset - 4] = (byte)0x83;
-                buffer[offset - 3] = (byte)((dataSize & 0x00ff0000) >> 16);
-                buffer[offset - 2] = (byte)((dataSize & 0x0000ff00) >> 8);
-                buffer[offset - 1] = (byte)(dataSize & 0x000000ff);
                 offset -= 4;
+                buffer[offset] = (byte)0x83;
+                buffer[offset + 1] = (byte)((dataSize & 0x00ff0000) >> 16);
+                buffer[offset + 2] = (byte)((dataSize & 0x0000ff00) >> 8);
+                buffer[offset + 3] = (byte)(dataSize & 0x000000ff);
                 return offset;
             }
 
             if (dataSize <= 0x7fffffff)
             {
-                buffer[offset - 5] = (byte)0x84;
-                buffer[offset - 4] = (byte)((dataSize & 0xff000000) >> 24);
-                buffer[offset - 3] = (byte)((dataSize & 0x00ff0000) >> 16);
-                buffer[offset - 2] = (byte)((dataSize & 0x0000ff00) >> 8);
-                buffer[offset - 1] = (byte)(dataSize & 0x000000ff);
                 offset -= 5;
+                buffer[offset] = (byte)0x84;
+                buffer[offset + 1] = (byte)((dataSize & 0xff000000) >> 24);
+                buffer[offset + 2] = (byte)((dataSize & 0x00ff0000) >> 16);
+                buffer[offset + 3] = (byte)((dataSize & 0x0000ff00) >> 8);
+                buffer[offset + 4] = (byte)(dataSize & 0x000000ff);
                 return offset;
             }
 
